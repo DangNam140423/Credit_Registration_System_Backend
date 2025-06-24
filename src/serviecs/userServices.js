@@ -92,7 +92,33 @@ let buildUrlEmail = (userData, token) => {
     return `${process.env.URL_REACT}/verify-user?token=${token}&userId=${userData.id}`;
 }
 
+
+const generateStudentCode = async (department_student, courseYear) => {
+    const year = courseYear.toString().slice(-2); // '21' từ 2021
+
+    // Tìm mã gần nhất cùng năm và mã ngành
+    const latest = await db.Student.findOne({
+        where: {
+            student_code: {
+                [Op.like]: `${year}${department_student}%`
+            }
+        },
+        order: [['student_code', 'DESC']]
+    });
+
+    let nextIndex = 1; // cho student đầu tiên trong bảng
+    if (latest) {
+        const latestCode = latest.student_code;
+        const numberPart = latestCode.slice(-4); // phần số cuối: 0001 → 0002
+        nextIndex = parseInt(numberPart) + 1;
+    }
+
+    const paddedIndex = String(nextIndex).padStart(4, '0'); // luôn 4 chữ số
+    return `${year}${department_student}${paddedIndex}`;
+};
+
 const createNewUser = async (data) => {
+    const t = await db.sequelize.transaction();
     try {
         const {
             email,
@@ -103,7 +129,7 @@ const createNewUser = async (data) => {
             gender,
             role,
             birthday,
-            avatar
+            avatar,
         } = data;
 
         // Kiểm tra input
@@ -141,141 +167,158 @@ const createNewUser = async (data) => {
             birthday,
             avatar,
             status: true,
-        });
+        }, { transaction: t });
 
-        if (!newUser) {
-            return {
-                EC: 3,
-                EM: 'Create new user failed',
-            };
+
+        // Tạo bản ghi mở rộng
+        if (role === 'R2') {
+            const { degree, department_teacher, major_teacher } = data;
+
+            if (!degree || !department_teacher) {
+                await t.rollback();
+                return {
+                    EC: 4,
+                    EM: 'Missing data for teacher',
+                };
+            }
+
+            await db.Teacher.create({
+                id_user: newUser.dataValues.id,
+                degree,
+                department: department_teacher,
+                major: major_teacher
+            }, { transaction: t });
+        } else if (role === 'R3') {
+            const { course_year, major_student, class_name, department_student } = data;
+
+            if (!course_year || !class_name || !department_student) {
+                await t.rollback();
+                return {
+                    EC: 4,
+                    EM: 'Missing data for student',
+                };
+            }
+
+            const student_code = await generateStudentCode(department_student, course_year);
+
+            await db.Student.create({
+                id_user: newUser.dataValues.id,
+                student_code,
+                department: department_student,
+                major: major_student,
+                class_name,
+                course_year
+            }, { transaction: t });
         }
 
         // Gửi mail xác thực
-        const token = uuidv4();
-        await sendMailServices.handleSendMailAuth({
-            dataUser: newUser.dataValues,
-            redirectLink: buildUrlEmail(newUser.dataValues, token),
-        });
-
+        // const token = uuidv4();
+        // await sendMailServices.handleSendMailAuth({
+        //     dataUser: newUser.dataValues,
+        //     redirectLink: buildUrlEmail(newUser.dataValues, token),
+        // });
         // Cập nhật token xác thực
-        await newUser.update({ token });
+        // await newUser.update({ token });
 
+        await t.commit();
         return {
             EC: 0,
             EM: 'Create a new user success',
         };
 
     } catch (error) {
-        console.error('Create user error:', error);
+        await t.rollback();
+        console.error('Create user error:', error.message);
         throw new Error('Internal server error');
     }
 };
 
-
 const deleteUser = async (idUser) => {
     const ADMIN_ID = 1;
+    if (!idUser) return { EC: 1, EM: 'Missing input parameter!' };
+    if (idUser === ADMIN_ID) return { EC: 3, EM: 'Tài khoản Admin, không được chạm vào!' };
 
-    if (!idUser) {
-        return {
-            EC: 1,
-            EM: 'Missing input parameter!',
-        };
-    }
-
-    if (idUser === ADMIN_ID) {
-        return {
-            EC: 3,
-            EM: 'Tài khoản Admin, không được chạm vào!',
-        };
-    }
-
+    const t = await db.sequelize.transaction();
     try {
-        const user = await db.User.findByPk(idUser);
+        const user = await db.User.findByPk(idUser, {
+            raw: false,
+        });
+        if (!user) return { EC: 2, EM: "The user doesn't exist!" };
 
-        if (!user) {
-            return {
-                EC: 2,
-                EM: "The user doesn't exist!",
-            };
+        if (user.role === 'R2') {
+            await db.Teacher.destroy({ where: { id_user: idUser }, transaction: t });
+        } else if (user.role === 'R3') {
+            await db.Student.destroy({ where: { id_user: idUser }, transaction: t });
         }
 
-        await user.destroy(); // dùng instance method, tránh query lần nữa
-        return {
-            EC: 0,
-            EM: 'Delete user success.',
-        };
+        await user.destroy({ transaction: t }); // dùng instance method, tránh query lần nữa
+        await t.commit();
+
+        return { EC: 0, EM: 'Delete user success.' };
     } catch (error) {
+        await t.rollback();
         console.error('Delete user error:', error);
         throw new Error('Internal server error');
     }
 };
 
-
 const editUser = async (dataUser) => {
     const ADMIN_ID = 1;
+    const t = await db.sequelize.transaction();
 
     try {
         const {
-            id,
-            name,
-            address,
-            gender,
-            phone,
-            role,
-            birthday,
-            avatar,
+            id, name, address, gender, phone, role, birthday, avatar,
+            degree, department_teacher, major_teacher, // for teacher
+            course_year, major_student, class_name, department_student // for student
         } = dataUser;
 
-        // Ngăn sửa admin
-        if (+id === ADMIN_ID) {
-            return {
-                EC: 3,
-                EM: 'Tài khoản này là Admin, không được chạm vào!',
-            };
+        if (+id === ADMIN_ID) return { EC: 3, EM: 'Tài khoản này là Admin, không được chạm vào!' };
+
+        if (!id || !name?.trim() || !address?.trim() || !phone || !birthday || !gender || !role) {
+            return { EC: 1, EM: 'Missing input parameters!' };
         }
 
-        // Kiểm tra đầu vào
-        if (
-            !id || !name?.trim() || !address?.trim() || !phone ||
-            !birthday || !gender || !role
-        ) {
-            return {
-                EC: 1,
-                EM: 'Missing input parameters!',
-            };
-        }
-
-        // Tìm user
-        const user = await db.User.findByPk(id);
-        if (!user) {
-            return {
-                EC: 2,
-                EM: 'User not found!',
-            };
-        }
-
-        // Cập nhật dữ liệu
-        await user.update({
-            name,
-            address,
-            gender,
-            phone,
-            role,
-            birthday,
-            ...(avatar && { avatar }), // chỉ cập nhật avatar nếu có
+        const user = await db.User.findByPk(idUser, {
+            raw: false,
         });
+        if (!user) return { EC: 2, EM: 'User not found!' };
 
-        return {
-            EC: 0,
-            EM: 'Update user succeeds',
-        };
+        await user.update({
+            name, address, gender, phone, role, birthday,
+            ...(avatar && { avatar }),
+        }, { transaction: t });
+
+        if (role === 'R2') {
+            await db.Teacher.update(
+                {
+                    degree,
+                    department: department_teacher,
+                    major: major_teacher
+                },
+                { where: { id_user: id }, transaction: t }
+            );
+        } else if (role === 'R3') {
+            await db.Student.update(
+                {
+                    major: major_student,
+                    department: department_student,
+                    class_name,
+                    course_year
+                },
+                { where: { id_user: id }, transaction: t }
+            );
+        }
+
+        await t.commit();
+        return { EC: 0, EM: 'Update user succeeds' };
 
     } catch (error) {
+        await t.rollback();
         console.error('Edit user error:', error);
         throw new Error('Internal server error');
     }
 };
-
 
 
 module.exports = {

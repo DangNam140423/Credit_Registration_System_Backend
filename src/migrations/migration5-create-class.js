@@ -8,9 +8,17 @@ module.exports = {
                 primaryKey: true,
                 type: Sequelize.INTEGER
             },
+            id_semester: {
+                allowNull: false,
+                type: Sequelize.TINYINT,
+                references: {
+                    model: 'Semesters',
+                    key: 'id',
+                },
+            },
             id_module: {
                 allowNull: false,
-                type: Sequelize.INTEGER,
+                type: Sequelize.STRING,
                 references: {
                     model: 'Modules',
                     key: 'id',
@@ -24,7 +32,23 @@ module.exports = {
                     key: 'id',
                 },
             },
-            total_slots : {
+            id_room: {
+                allowNull: true,
+                type: Sequelize.STRING,
+                references: {
+                    model: 'Rooms',
+                    key: 'id',
+                },
+            },
+            start_lessons: {
+                allowNull: false,
+                type: Sequelize.TINYINT,
+            },
+            end_lessons: {
+                allowNull: false,
+                type: Sequelize.TINYINT,
+            },
+            total_slots: {
                 allowNull: false,
                 type: Sequelize.TINYINT,
             },
@@ -32,25 +56,17 @@ module.exports = {
                 allowNull: false,
                 type: Sequelize.TINYINT,
             },
-            start_day: {
-                allowNull: false,
+            start_date: {
+                allowNull: true,
                 type: Sequelize.DATE,
             },
-            end_day: {
-                allowNull: false,
+            end_date: {
+                allowNull: true,
                 type: Sequelize.DATE,
             },
             count_week: {
                 allowNull: false,
                 type: Sequelize.TINYINT,
-            },
-            semester: {
-                allowNull: false,
-                type: Sequelize.TINYINT,
-            },
-            room: {
-                allowNull: true,
-                type: Sequelize.STRING
             },
             createdAt: {
                 allowNull: false,

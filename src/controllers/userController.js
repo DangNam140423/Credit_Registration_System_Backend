@@ -69,7 +69,7 @@ let handleCreateNewUser = async (req, res) => {
     }
 }
 
-let handelEditUser = async (req, res) => {
+let handleEditUser = async (req, res) => {
     try {
         let user = req.body;
         user.avatar = req?.file?.path || null;
@@ -104,7 +104,7 @@ let handelEditUser = async (req, res) => {
     }
 }
 
-let handelDeleteUser = async (req, res) => {
+let handleDeleteUser = async (req, res) => {
     try {
         const { id, filenameOld } = req.body;
 
@@ -128,5 +128,5 @@ let handelDeleteUser = async (req, res) => {
 
 module.exports = {
     handleHome,
-    handleGetAllUser, handleCreateNewUser, handelEditUser, handelDeleteUser
+    handleGetAllUser, handleCreateNewUser, handleEditUser, handleDeleteUser
 }

@@ -24,15 +24,15 @@ module.exports = {
                     key: 'id',
                 },
             },
-            participation_grade: {
+            participation_grade: { // điểm chuyên cần
                 type: Sequelize.TINYINT,
                 defaultValue: null
             },
-            midterm_grade: { // thứ trong tuần
+            midterm_grade: { // điểm giữa kỳ
                 type: Sequelize.TINYINT,
                 defaultValue: null
             },
-            final_grade: {
+            final_grade: { // điểm cuối kỳ
                 type: Sequelize.TINYINT,
                 defaultValue: null
             },

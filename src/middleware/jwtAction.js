@@ -5,6 +5,9 @@ import jwt from "jsonwebtoken";
 const nonSecurePath = [
     '/', '/api/login', '/api/register', '/api/logout',
     '/api/verify-user',
+    '/api/get-all-semester',
+    '/api/get-all-department',
+    '/api/get-schedule-over',
 ];
 // các path này sẽ không cần check user đã đăng nhập hay chưa
 
@@ -125,14 +128,16 @@ const checkUserPermissonJWT = (req, res, next) => {
             case 'R0': // Admin
                 path = [
                     '/api/get-all-user', '/api/create-new-user', '/api/delete-user', '/api/edit-user',
-                    '/api/get-all-moudle', '/api/create-moudle', '/api/edit-moudle', '/api/delete-moudle'
+                    '/api/get-all-module', '/api/create-module', '/api/edit-module', '/api/delete-module',
+                    '/api/get-schedule-over',
                 ];
                 break;
             case 'R1': // Train Department
                 path = [
                     '/api/get-all-user',
                     '/api/get-all-class', '/api/create-class', '/api/edit-class', '/api/delete-class',
-                    '/api/get-schedule-over'
+                    '/api/get-schedule-over',
+                    '/api/get-all-module', '/api/create-module', '/api/edit-module', '/api/delete-module'
                 ];
                 break;
             case 'R2': // Teacher

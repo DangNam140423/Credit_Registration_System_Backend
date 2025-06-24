@@ -10,15 +10,12 @@ module.exports = (sequelize, DataTypes) => {
         }
     };
     Study_Progress.init({
-        id_module: DataTypes.INTEGER,
         id_student: DataTypes.INTEGER,
-        count_slot: DataTypes.TINYINT,
-        day_of_week: DataTypes.TINYINT,
-        start_day: DataTypes.TINYINT,
-        end_day: DataTypes.TINYINT,
-        count_week: DataTypes.TINYINT,
-        semester: DataTypes.TINYINT,
-        room: DataTypes.TINYINT,
+        id_class: DataTypes.INTEGER,
+        participation_grade: DataTypes.TINYINT,
+        midterm_grade: DataTypes.TINYINT,
+        final_grade: DataTypes.TINYINT,
+        status: DataTypes.BOOLEAN,
     }, {
         sequelize,
         modelName: 'Study_Progress',
