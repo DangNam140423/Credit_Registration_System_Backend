@@ -52,6 +52,11 @@ module.exports = {
                 allowNull: false,
                 type: Sequelize.TINYINT,
             },
+            fill_slots: {
+                allowNull: false,
+                type: Sequelize.TINYINT,
+                defaultValue: 0
+            },
             day_of_week: { // thứ trong tuần
                 allowNull: false,
                 type: Sequelize.TINYINT,

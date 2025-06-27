@@ -7,7 +7,8 @@ const nonSecurePath = [
     '/api/verify-user',
     '/api/get-all-semester',
     '/api/get-all-department',
-    '/api/get-schedule-over',
+    '/api/get-all-class',
+    '/api/get-all-class-registered',
 ];
 // các path này sẽ không cần check user đã đăng nhập hay chưa
 
@@ -129,14 +130,19 @@ const checkUserPermissonJWT = (req, res, next) => {
                 path = [
                     '/api/get-all-user', '/api/create-new-user', '/api/delete-user', '/api/edit-user',
                     '/api/get-all-module', '/api/create-module', '/api/edit-module', '/api/delete-module',
+                    '/api/get-room-empty', '/api/get-teacher-free',
+                    '/api/get-all-class', '/api/create-new-class', '/api/edit-class', '/api/delete-class',
+                    '/api/open-semester',
                     '/api/get-schedule-over',
                 ];
                 break;
             case 'R1': // Train Department
                 path = [
                     '/api/get-all-user',
-                    '/api/get-all-class', '/api/create-class', '/api/edit-class', '/api/delete-class',
+                    '/api/get-room-empty', '/api/get-teacher-free',
+                    '/api/get-all-class', '/api/create-new-class', '/api/edit-class', '/api/delete-class',
                     '/api/get-schedule-over',
+                    '/api/open-semester',
                     '/api/get-all-module', '/api/create-module', '/api/edit-module', '/api/delete-module'
                 ];
                 break;
@@ -147,7 +153,7 @@ const checkUserPermissonJWT = (req, res, next) => {
                 break;
             case 'R3': // Student
                 path = [
-                    '/api/credit-registration',
+                    '/api/credit-registration', '/api/cancel-class',
                     '/api/get-schedule-study',
                     '/api/get-tuition'
                 ];

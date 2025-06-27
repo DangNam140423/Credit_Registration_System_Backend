@@ -11,12 +11,17 @@ let getAllUsers = async (userId, page, limit, role) => {
         page = Math.max(+page || 1, 1);
         limit = Math.max(+limit || 10);
         let offset = (page - 1) * limit;
-
         let whereCondition = {
             role: {
                 [Op.in]: ['R2', 'R3'],// Chỉ lấy teacher và student
             },
         };
+
+        if (['R2', 'R3'].includes(role)) {
+            whereCondition = {
+                role: role,
+            };
+        }
 
         // Nếu chỉ lấy 1 user cụ thể
         if (userId && userId !== 'ALL') {
@@ -27,6 +32,16 @@ let getAllUsers = async (userId, page, limit, role) => {
 
         const { count, rows } = await db.User.findAndCountAll({
             where: whereCondition,
+            include: [
+                {
+                    model: db.Teacher, as: 'teacherData', attributes: ['department', 'degree', 'major'],
+                    include: [{ model: db.Department, as: 'departmentData', attributes: ['name'] }]
+                },
+                {
+                    model: db.Student, as: 'studentData', attributes: ['department', 'student_code', 'class_name', 'course_year', 'major'],
+                    include: [{ model: db.Department, as: 'departmentData', attributes: ['name'] }]
+                }
+            ],
             attributes: { exclude: ['password', 'token'] },
             order: [['role', 'ASC'], ['id', 'ASC']],
             offset,

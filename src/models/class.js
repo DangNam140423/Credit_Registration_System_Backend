@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
         start_lessons: DataTypes.TINYINT,
         end_lessons: DataTypes.TINYINT,
         total_slots: DataTypes.TINYINT,
+        fill_slots: DataTypes.TINYINT,
         day_of_week: DataTypes.TINYINT,
         start_date: DataTypes.DATE,
         end_date: DataTypes.DATE,

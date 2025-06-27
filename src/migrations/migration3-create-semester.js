@@ -20,6 +20,11 @@ module.exports = {
                 allowNull: false,
                 type: Sequelize.DATE
             },
+            status: {
+                allowNull: false,
+                type: Sequelize.BOOLEAN,
+                defaultValue: false
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE

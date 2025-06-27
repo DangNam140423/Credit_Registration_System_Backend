@@ -5,6 +5,7 @@ import moduleController from '../controllers/moduleControler.js';
 import departmentController from '../controllers/departmentController.js';
 import semesterController from '../controllers/semesterController.js';
 import classController from '../controllers/classController.js';
+import studyController from '../controllers/studyController.js';
 import uploadClodinary from '../middleware/uploadCloudinary.js'
 import { checkMiddelwareUserJWT, checkUserPermissonJWT } from '../middleware/jwtAction.js'
 
@@ -35,6 +36,17 @@ const initWebRoute = (app) => {
     router.delete('/api/delete-module', moduleController.handleDeleteModule);
 
     router.get('/api/get-schedule-over', classController.getWeeklySchedule);
+    router.post('/api/create-new-class', classController.handleCreateClass);
+    router.delete('/api/delete-class', classController.handleDeleteClass);
+    router.post('/api/get-room-empty', classController.getRoomEmpty);
+    router.post('/api/get-teacher-free', classController.getTeacherFree);
+
+    router.post('/api/open-semester', classController.openSemester);
+
+    router.get('/api/get-all-class', classController.getAllClass);
+    router.post('/api/credit-registration', studyController.handleCreateStudy);
+    router.get('/api/get-all-class-registered', studyController.handleGetStudy);
+    router.delete('/api/cancel-class', studyController.handleCancelStudy);
 
 
     return app.use('/', router);

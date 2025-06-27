@@ -55,14 +55,12 @@ let createModule = async (data) => {
         let prefix = generateCodePrefix(name);
         let count = await db.Module.count({
             where: {
-                name: {
-                    [Op.like]: `${prefix}%`
-                }
+                id: prefix
             }
         });
         let nextNumber = count + 1;
-        let numberPart = String(nextNumber).padStart(3, '0');
-        let courseCode = `${prefix}-${numberPart}`;
+
+        let courseCode = `${prefix}${count === 0 ? '' : '_' + nextNumber}`;
 
         await db.Module.create({
             id: courseCode,

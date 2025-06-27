@@ -19,6 +19,8 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         sequelize,
         modelName: 'Study_Progress',
+        tableName: 'Study_Progress',     // Tên bảng đúng như trong migration
+        freezeTableName: true,           // Không đổi thành số nhiều
     });
     return Study_Progress;
 };

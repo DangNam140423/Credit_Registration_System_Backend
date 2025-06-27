@@ -22,10 +22,11 @@ let handleGetAllUser = async (req, res) => {
         let id = req.query.id;
         let page = req.query.page;
         let limit = req.query.limit;
+        let role = req.query.role;
         if (id && page && limit &&
             typeof id !== 'undefined' && typeof page !== 'undefined' && typeof limit !== 'undefined'
         ) {
-            let result = await userServices.getAllUsers(id, +page, +limit);
+            let result = await userServices.getAllUsers(id, +page, +limit, role);
             return res.status(200).json(result);
         } else {
             return res.status(200).json({
